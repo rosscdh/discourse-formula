@@ -7,6 +7,7 @@ discourse-net:
 
 {%- for key, image in docker_images.items() %}
 
+{%- set container_state = image | traverse('state', 'running') %}
 {%- set dker_image = image | traverse('image') %}
 {%- set command = image | traverse('command') %}
 {%- set ports = image | traverse('ports') %}
@@ -16,6 +17,11 @@ discourse-net:
 # container for {{ key }}
 #
 {{ key }}:
+  {%- if container_state == 'absent' %}
+  docker_container.absent
+  {%- endif %}
+
+  {%- if container_state == 'running' %}
   docker_container.running:
     # Image
     - image: {{ dker_image }}
@@ -54,4 +60,5 @@ discourse-net:
 
     - require:
       - docker_network: discourse-net
+  {%- endif %}
 {%- endfor %}
