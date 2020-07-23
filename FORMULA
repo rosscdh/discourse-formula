@@ -1,0 +1,7 @@
+name: discourse
+os: CentOS
+os_family: RedHat
+version: 0.0.1
+release: 1
+description: A better discourse formula
+top_level_dir:  discourse

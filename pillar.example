@@ -1,0 +1,90 @@
+#!yaml|gpg
+env: &discourse_common_environment
+  DISCOURSE_USERNAME: bit
+  DISCOURSE_PASSWORD: password
+  DISCOURSE_EMAIL: sendrossemail@gmail.com
+  DISCOURSE_SITENAME: My Discuss Site
+  DISCOURSE_HOSTNAME: discuss.example.com
+  DISCOURSE_SKIP_INSTALL: "no"
+  # Passenger method used for spawning application processes. Valid values: direct, smart. Default: direct
+  DISCOURSE_PASSENGER_SPAWN_METHOD: direct
+  # Port number in which Discourse will run. Default: 3000
+  DISCOURSE_PORT_NUMBER: 3000
+  # Hostname for Postgresql server. Default: postgresql can also be a mounted socket /var/run/postgresql
+  #POSTGRESQL_HOST: /var/run/postgresql
+  POSTGRESQL_HOST: postgres
+  # Port used by Postgresql server. Default: 5432
+  POSTGRESQL_PORT_NUMBER: 5432
+  # Discourse application database user. Default: bn_discourse
+  DISCOURSE_POSTGRESQL_USERNAME: discourse
+  # Discourse application database password. Default: bitnami1
+  DISCOURSE_POSTGRESQL_PASSWORD: password
+  # Discourse application database name. Default: bitnami_application
+  DISCOURSE_POSTGRESQL_NAME: discourse_dev
+  # Hostname for Redis. Default: redis
+  REDIS_HOST: redis
+  # Port used by Redis. Default: 6379
+  REDIS_PORT_NUMBER: 6379
+  # Password for Redis.
+  REDIS_PASSWORD: ""
+  # Host for outgoing SMTP email. No defaults.
+  SMTP_HOST: mailhog
+  # Port for outgoing SMTP email. No defaults.
+  SMTP_PORT: 1025
+  # User of SMTP used for authentication (likely email). No defaults.
+  SMTP_USER: ""
+  # Password for SMTP. No defaults.
+  SMTP_PASSWORD: ""
+  # Whether use TLS protocol for SMTP or not. Default: yes.
+  SMTP_TLS: "no"
+  # Whether use Authentication for SMTP or not. Default: login.
+  SMTP_AUTH: ""
+
+discourse:
+  images:
+    discourse:
+      image: bitnami/discourse:2.5.0
+      ports:
+        - 8001:3000
+      env: *discourse_common_environment
+      binds:
+        - /var/run/postgresql:/var/run/postgresql
+
+    discourse-sidekiq:
+      image: bitnami/discourse:2.5.0
+      command: nami start --foreground discourse-sidekiq
+      # ports:
+      env: *discourse_common_environment
+      binds:
+        - /var/run/postgresql:/var/run/postgresql
+
+    postgres:
+      image: postgres:latest
+      # ports:
+      #   - 5432:5432
+      env:
+        POSTGRESQL_ROOT_USER: postgres
+        POSTGRESQL_ROOT_PASSWORD: password
+        POSTGRES_USER: discourse
+        POSTGRES_PASSWORD: password
+        POSTGRES_DB: discourse_dev
+      binds: []
+
+    redis:
+      image: bitnami/redis:latest
+      ports:
+        - 6379:6379
+      env:
+        key: value
+      binds: []
+
+    mailhog:
+      image: mailhog/mailhog:latest
+      ports:
+        # web
+        - 8025:8025
+        # smtp
+        # - 1025:1025
+      env:
+        key: value
+      binds: []
