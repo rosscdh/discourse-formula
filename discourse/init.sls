@@ -6,6 +6,7 @@
   - source:  salt://discourse/files/site_settings.yml.jinja
   - mode: 755
   - makedirs: True
+  - template: jinja
   - context:
       config: {{ config | json }}
 
