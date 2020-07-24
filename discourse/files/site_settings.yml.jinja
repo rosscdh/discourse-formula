@@ -1,3 +1,4 @@
+{%- from "discourse/map.jinja" import config with context %}
 # Available options:
 #
 # default            - The default value of the setting. For upload site settings, use the id of the upload seeded in db/fixtures/010_uploads.rb.
@@ -1372,7 +1373,7 @@ security:
       - "staff"
       - "all"
   force_https:
-    default: {{ config.force_https }}
+    default: {{ config | traverse("force_https", False) }}
   same_site_cookies:
     default: Lax
     type: enum

@@ -7,8 +7,6 @@
   - mode: 755
   - makedirs: True
   - template: jinja
-  - context:
-      config: {{ config | json }}
 
 /opt/bitnami/discourse/postgresql/data:
   file.directory:
