@@ -9,6 +9,11 @@
   - context:
       config: {{ config | json }}
 
+/opt/bitnami/discourse/postgresql/data:
+  file.directory:
+    - mode: 755
+    - makedirs: True
+
 discourse-net:
   docker_network.present:
   - driver: bridge
