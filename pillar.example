@@ -49,6 +49,7 @@ discourse:
       env: *discourse_common_environment
       binds:
         - /var/run/postgresql:/var/run/postgresql
+        - /opt/bitnami/discourse/conf/site_settings.yml:/opt/bitnami/discourse/conf/site_settings.yml
 
     discourse-sidekiq:
       image: bitnami/discourse:2.5.0

@@ -1,6 +1,12 @@
 {%- from "discourse/map.jinja" import config with context %}
 {%- set docker_images = config['images'] %}
 
+/opt/bitnami/discourse/conf/site_settings.yml:
+  file.managed:
+  - source:  salt://etcd/files/site_settings.yml.jinja
+  - context:
+      config: {{ config | json }}
+
 discourse-net:
   docker_network.present:
   - driver: bridge

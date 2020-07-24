@@ -41,6 +41,7 @@ env: &discourse_common_environment
   SMTP_AUTH: ""
 
 discourse:
+  force_https: true
   images:
     discourse:
       state: running
