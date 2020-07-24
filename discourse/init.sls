@@ -4,6 +4,8 @@
 /opt/bitnami/discourse/conf/site_settings.yml:
   file.managed:
   - source:  salt://discourse/files/site_settings.yml.jinja
+  - mode: 755
+  - makedirs: True
   - context:
       config: {{ config | json }}
 
