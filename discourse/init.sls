@@ -3,7 +3,7 @@
 
 /opt/bitnami/discourse/conf/site_settings.yml:
   file.managed:
-  - source:  salt://etcd/files/site_settings.yml.jinja
+  - source:  salt://discourse/files/site_settings.yml.jinja
   - context:
       config: {{ config | json }}
 
