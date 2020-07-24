@@ -1372,7 +1372,7 @@ security:
       - "staff"
       - "all"
   force_https:
-    default: {{ config | traverse("force_https", False) }}
+    default: {{ config.force_https }}
   same_site_cookies:
     default: Lax
     type: enum
