@@ -1,6 +1,18 @@
 {%- from "discourse/map.jinja" import config with context %}
 {%- set docker_images = config['images'] %}
 
+/opt/bitnami/discourse/conf/site_settings.yml:
+  file.managed:
+  - source:  salt://discourse/files/site_settings.yml.jinja
+  - mode: 755
+  - makedirs: True
+  - template: jinja
+
+/opt/bitnami/discourse/postgresql/data:
+  file.directory:
+    - mode: 755
+    - makedirs: True
+
 discourse-net:
   docker_network.present:
   - driver: bridge
