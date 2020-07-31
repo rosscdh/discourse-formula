@@ -29,3 +29,7 @@ run tests: ```make tests```
 This formula was created from a cookiecutter template.
 
 > See (https://github.com/thiccbois/salt-formula-cookiecutter)
+
+# TODO
+
+* perform `bundle exec rake assets:precompile and db:migrate` on new install and as an option
