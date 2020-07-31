@@ -1,5 +1,6 @@
 {%- from "discourse/map.jinja" import config with context %}
 {%- set docker_images = config['images'] %}
+{%- set host_path = config['host_path'] %}
 
 create_discourse_source_dirs:
   file.directory:
