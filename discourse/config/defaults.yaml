@@ -1,101 +1,131 @@
 #!yaml|gpg
+
 env: &discourse_common_environment
-  # Discourse application username. Default: user
-  DISCOURSE_USERNAME: user
-  # Discourse application password. Default: bitnami123
-  DISCOURSE_PASSWORD: bitnami123
-  # Discourse application email. Default: user@example.com
-  DISCOURSE_EMAIL: user@example.com
-  # Discourse site name. Default: My site!
-  DISCOURSE_SITENAME: "My Awesome Site!"
-  # Discourse hostname to create application URLs for features such as email notifications and emojis. It can be either an IP or a domain. Default: www.example.com
-  DISCOURSE_HOSTNAME: www.example.com
-  # Do not run the Discourse installation wizard. Use only in case you are importing an existing database. Default: no
-  DISCOURSE_SKIP_INSTALL: no
-  # Passenger method used for spawning application processes. Valid values: direct, smart. Default: direct
-  DISCOURSE_PASSENGER_SPAWN_METHOD: direct
-  # Port number in which Discourse will run. Default: 3000
-  DISCOURSE_PORT_NUMBER: 3000
+  LANG: en_US.UTF-8
+  DISCOURSE_DEFAULT_LOCALE: en
+  RAILS_ENV: production
+  ## How many concurrent web requests are supported? Depends on memory and CPU cores.
+  ## will be set automatically by bootstrap based on detected CPUs, or you can override
+  UNICORN_WORKERS: 3
 
-  # Root user for the Postgresql database. Default: postgres
-  POSTGRESQL_ROOT_USER: postgres
-  # Root password for Postgresql.
-  POSTGRESQL_ROOT_PASSWORD: .
-  # Hostname for Postgresql server. Default: postgresql
-  POSTGRESQL_HOST: postgresql
-  # Port used by Postgresql server. Default: 5432
-  POSTGRESQL_PORT_NUMBER: 5432
+  ## TODO: The domain name this Discourse instance will respond to
+  DISCOURSE_HOSTNAME: discuss.example.com
 
-  # Discourse application database user. Default: bn_discourse
-  DISCOURSE_POSTGRESQL_USERNAME: bn_discourse
-  # Discourse application database password. Default: bitnami1
-  DISCOURSE_POSTGRESQL_PASSWORD: bitnami1
-  # Discourse application database name. Default: bitnami_application
-  DISCOURSE_POSTGRESQL_NAME: bitnami_application
+  ## TODO: List of comma delimited emails that will be made admin and developer
+  ## on initial signup example 'user1@example.com,user2@example.com'
+  DISCOURSE_DEVELOPER_EMAILS: 'me@example.com,you@example.com'
 
-  # Hostname for Redis. Default: redis
-  REDIS_HOST: redis
-  # Port used by Redis. Default: 6379
-  REDIS_PORT_NUMBER: 6379
-  # Password for Redis.
-  REDIS_PASSWORD: null
+  ## TODO: The SMTP mail server used to validate new accounts and send notifications
+  # SMTP ADDRESS, username, and password are required
+  # WARNING the char '#' in SMTP password can cause problems!
+  DISCOURSE_SMTP_ADDRESS: mailhog
+  DISCOURSE_SMTP_PORT: 1025
+  # DISCOURSE_SMTP_USER_NAME: ''
+  # DISCOURSE_SMTP_PASSWORD: ''
+  # DISCOURSE_SMTP_ENABLE_START_TLS: 'false'           # (optional, default true)
 
-  # Host for outgoing SMTP email. No defaults.
-  SMTP_HOST: mailhog
-  # Port for outgoing SMTP email. No defaults.
-  SMTP_PORT: 1025
-  # User of SMTP used for authentication (likely email). No defaults.
-  SMTP_USER: ""
-  # Password for SMTP. No defaults.
-  SMTP_PASSWORD: ""
-  # Whether use TLS protocol for SMTP or not. Default: yes.
-  SMTP_TLS: "no"
-  # Whether use Authentication for SMTP or not. Default: login.
-  SMTP_AUTH: ""
+  ## If you added the Lets Encrypt template, uncomment below to get a free SSL certificate
+  #LETSENCRYPT_ACCOUNT_EMAIL: me@example.com
+
+  ## TODO: configure connectivity to the databases
+  # DISCOURSE_DB_SOCKET: ''
+  DISCOURSE_DB_HOST: postgres
+  DISCOURSE_DB_NAME: discourse
+  DISCOURSE_DB_USERNAME: discourse
+  DISCOURSE_DB_PASSWORD: password
+  # redis host
+  DISCOURSE_REDIS_HOST: redis
+  # DISCOURSE_REDIS_PORT: 6379
+
+  # we route all traffic through nginx, because why split it artifically let nginx do what it does
+  DISCOURSE_CDN_URL: http://discuss.example.com
+  DISCOURSE_SERVE_STATIC_ASSETS: "true"
+
+  # Disable all of this junk
+  SKIP_ENFORCE_HOSTNAME: '0'
+
+  #
+  # triggers that matter on deploy
+  #
+  # if 1 will start a db:migrate on the connected db
+  ENABLE_DB_MIGRATE: '0'
+  # if 1 will on start issue a assets:precompile
+  ENABLE_ASSETS_PIPELINE: '0'
+
+  # stress less to start
+  DISCOURSE_ENABLE_CORS: 'false'
+  DISCOURSE_CORS_ORIGIN: '*'
+  #SKIP_DB_AND_REDIS: '1'
 
 discourse:
   force_https: true
+  host_path: /opt/bit/discourse
   images:
+    nginx:
+      # brotli is needed for the assets from rails
+      image: fholzer/nginx-brotli
+      ports:
+        - 3000:80
+      volumes:
+        - /opt/bit/discourse/config/nginx.application.conf:/etc/nginx/conf.d/default.conf
+        - /opt/bit/discourse/generated/public:/var/www/discourse/public
+        - /opt/bit/discourse/generated/nginx/cache:/var/nginx/cache
+
     discourse:
       state: running
-      image: bitnami/discourse:2.5.0
-      ports:
-        - 8001:3000
+      image: rosscdh/discourse-kube:latest
+      working_dir: /var/www/discourse
+      command: bash /var/www/discourse/entrypoint.sh
+      # no need for ports as nginx does the exposing
+      # only expose ports if you need to debug some stuff
       env: *discourse_common_environment
       binds:
         - /var/run/postgresql:/var/run/postgresql
+        - /opt/bit/discourse/config/entrypoint.sh:/var/www/discourse/entrypoint.sh
+        - /opt/bit/discourse/config/unicorn.rb:/var/www/discourse/config/unicorn.rb
+        - /opt/bit/discourse/config/application.rb:/var/www/discourse/config/application.rb
+        - /opt/bit/discourse/envs/production.rb:/var/www/discourse/config/environments/production.rb
+        - /opt/bit/discourse/overrides/routes.rb:/var/www/discourse/config/routes.rb
+        - /opt/bit/discourse/generated/public/assets:/var/www/discourse/public/assets
+        - /opt/bit/discourse/generated/public/images:/var/www/discourse/public/images
+        - /opt/bit/discourse/generated/public/uploads:/var/www/discourse/public/uploads
+        - /opt/bit/discourse/generated/public/javascripts:/var/www/discourse/public/javascripts
 
     discourse-sidekiq:
       state: running
-      image: bitnami/discourse:2.5.0
-      command: nami start --foreground discourse-sidekiq
-      # ports:
+      image: rosscdh/discourse-kube:latest
+      working_dir: /var/www/discourse
+      command: bundle exec sidekiq
       env: *discourse_common_environment
       binds:
         - /var/run/postgresql:/var/run/postgresql
+        - /opt/bit/discourse/config/entrypoint.sh:/var/www/discourse/entrypoint.sh
+        - /opt/bit/discourse/config/unicorn.rb:/var/www/discourse/config/unicorn.rb
+        - /opt/bit/discourse/config/application.rb:/var/www/discourse/config/application.rb
+        - /opt/bit/discourse/envs/production.rb:/var/www/discourse/config/environments/production.rb
+        - /opt/bit/discourse/overrides/routes.rb:/var/www/discourse/config/routes.rb
+        - /opt/bit/discourse/generated/public/assets:/var/www/discourse/public/assets
+        - /opt/bit/discourse/generated/public/images:/var/www/discourse/public/images
+        - /opt/bit/discourse/generated/public/uploads:/var/www/discourse/public/uploads
+        - /opt/bit/discourse/generated/public/javascripts:/var/www/discourse/public/javascripts
 
     postgres:
       state: running
       image: postgres:latest
-      # ports:
-      #   - 5432:5432
       env:
         POSTGRESQL_ROOT_USER: postgres
         POSTGRESQL_ROOT_PASSWORD: password
         POSTGRES_USER: discourse
         POSTGRES_PASSWORD: password
-        POSTGRES_DB: discourse_dev
+        POSTGRES_DB: discourse
       binds:
-        - /opt/bitnami/discourse/postgresql/data:/var/lib/postgresql/data
+        - /opt/bit/discourse/postgresql/data:/var/lib/postgresql/data
 
     redis:
       state: running
-      image: bitnami/redis:latest
-      ports:
-        - 6379:6379
-      env:
-        key: value
-      binds: []
+      image: redis:alpine
+      # ports:
+      #   - 6379:6379
 
     mailhog:
       state: running
@@ -104,7 +134,4 @@ discourse:
         # web
         - 8025:8025
         # smtp
-        # - 1025:1025
-      env:
-        key: value
-      binds: []
+        - 1025:1025
