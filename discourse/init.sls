@@ -74,6 +74,8 @@ discourse-net:
 {%- set ports = image | traverse('ports') %}
 {%- set env = image | traverse('env') %}
 {%- set binds = image | traverse('binds') %}
+{%- set working_dir = image | traverse('working_dir') %}
+
 #
 # container for {{ key }}
 #
@@ -90,6 +92,11 @@ discourse-net:
     # Custom Command
     {%- if command %}
     - command: {{ command }}
+    {%- endif %}
+
+    # Working Dir
+    {%- if working_dir %}
+    - working_dir: {{ working_dir }}
     {%- endif %}
 
     # Ports

@@ -58,14 +58,13 @@ env: &discourse_common_environment
   #SKIP_DB_AND_REDIS: '1'
 
 discourse:
-  force_https: true
   host_path: /opt/bit/discourse
   images:
     nginx:
       # brotli is needed for the assets from rails
       image: fholzer/nginx-brotli
       ports:
-        - 3000:80
+        - 3001:80
       volumes:
         - /opt/bit/discourse/config/nginx.application.conf:/etc/nginx/conf.d/default.conf
         - /opt/bit/discourse/generated/public:/var/www/discourse/public
