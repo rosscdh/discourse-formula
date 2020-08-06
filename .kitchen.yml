@@ -22,7 +22,7 @@ provisioner:
         - discourse
 
 platforms:
-- name: debian-discourse
+- name: debian-dd
   driver_config:
     image: debian
 

@@ -126,11 +126,29 @@ discourse:
       # ports:
       #   - 6379:6379
 
+    # mailhog:
+    #   state: running
+    #   image: mailhog/mailhog:latest
+    #   ports:
+    #     # web
+    #     - 8025:8025
+    #     # smtp
+    #     - 1025:1025
+
     mailhog:
+      # has auto relay and you dont have to piss around with discourse retarded build
+      # requirements
       state: running
-      image: mailhog/mailhog:latest
+      image: maildev/maildev:latest
       ports:
         # web
-        - 8025:8025
+        - 8025:1080
         # smtp
         - 1025:1025
+      env:
+        MAILDEV_AUTO_RELAY: 1
+        MAILDEV_OUTGOING_HOST: null
+        MAILDEV_OUTGOING_PORT: null
+        MAILDEV_OUTGOING_USER: null
+        MAILDEV_OUTGOING_PASS: null
+        MAILDEV_OUTGOING_SECURE: 1
